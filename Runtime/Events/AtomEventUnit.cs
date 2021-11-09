@@ -8,54 +8,65 @@ using Void = UnityAtoms.Void;
 namespace Guyl.BoltAtoms.Events
 {
     [IncludeInSettings(true)]
-    public abstract class AtomEventUnit<T, ER, E> : MachineEventUnit<EmptyEventArgs>, IAtomListener<T>
+    public abstract class AtomEventUnit<T, ER, E> : MachineEventUnit<EmptyEventArgs>
         where E : AtomEvent<T>
         where ER : IGetEvent, ISetEvent, new()
     {
-        [DoNotSerializeAttribute]
+        public new class Data : EventUnit<EmptyEventArgs>.Data
+        {
+            public T CurrentValue;
+            public Action<T> EventRaisedHandler;
+        }
+
+        [DoNotSerialize]
         public ValueInput _event;
 
-        [DoNotSerializeAttribute]
+        [DoNotSerialize]
         public ValueOutput _value;
-
-        private Action<T> _eventRaisedHandler;
-        private T _currentValue;
 
         protected override string hookName => "UnityAtomEvent";
 
+        public override IGraphElementData CreateData()
+        {
+            return new Data();
+        }
+
         protected override void Definition()
         {
-            _event = ValueInput<ER>("", default);
-            _value = ValueOutput("", flow => _currentValue);
             base.Definition();
+
+            _event = ValueInput<ER>("", default);
+            _value = ValueOutput("", flow => flow.stack.GetElementData<Data>(this).CurrentValue);
         }
 
         public override void StartListening(GraphStack stack)
         {
             base.StartListening(stack);
 
+            Data data = stack.GetElementData<Data>(this);
             Flow flow = Flow.New(stack.ToReference());
-            E currentEvent = flow.GetValue<ER>(_event)?.GetEvent<E>();
+            E currentEvent = flow.GetValue<ER>(_event).GetEvent<E>();
 
             if (!currentEvent)
             {
                 return;
             }
 
-            _eventRaisedHandler = value =>
+            data.EventRaisedHandler = value =>
             {
-                _currentValue = value;
+                data.CurrentValue = value;
                 flow.Invoke(trigger);
             };
 
-            currentEvent.UnregisterListener(this);
-            currentEvent.RegisterListener(this, false);
+            currentEvent.Unregister(data.EventRaisedHandler);
+            currentEvent.Register(data.EventRaisedHandler);
         }
 
         public override void StopListening(GraphStack stack)
         {
             base.StopListening(stack);
 
+            Data data = stack.GetElementData<Data>(this);
             ER currentEventRef = Flow.FetchValue<ER>(_event, stack.ToReference());
             E currentEvent = currentEventRef.GetEvent<E>();
 
@@ -64,17 +75,14 @@ namespace Guyl.BoltAtoms.Events
                 return;
             }
 
-            currentEvent.UnregisterListener(this);
-        }
-
-        public void OnEventRaised(T item)
-        {
-            _eventRaisedHandler?.Invoke(item);
+            currentEvent.Unregister(data.EventRaisedHandler);
         }
     }
 
     [UnitCategory("Events/Atoms"), UnitShortTitle("AtomBaseVariable Event"), UnitTitle("AtomBaseVariable Event")]
-    public class AtomBaseVariableEventUnit : AtomEventUnit<AtomBaseVariable, AtomBaseVariableBaseEventReference, AtomBaseVariableEvent> { }
+    public class
+        AtomBaseVariableEventUnit : AtomEventUnit<AtomBaseVariable, AtomBaseVariableBaseEventReference,
+            AtomBaseVariableEvent> { }
 
     [UnitCategory("Events/Atoms"), UnitShortTitle("Bool Event"), UnitTitle("Atom Bool Event")]
     public class BoolEventUnit : AtomEventUnit<bool, BoolEventReference, BoolEvent> { }
@@ -99,13 +107,16 @@ namespace Guyl.BoltAtoms.Events
     public class Collision2DEventUnit : AtomEventUnit<Collision2D, Collision2DEventReference, Collision2DEvent> { }
 
     [UnitCategory("Events/Atoms"), UnitShortTitle("Collision2DPair Event"), UnitTitle("Atom Collision2DPair Event")]
-    public class Collision2DPairEventUnit : AtomEventUnit<Collision2DPair, Collision2DPairEventReference, Collision2DPairEvent> { }
+    public class
+        Collision2DPairEventUnit : AtomEventUnit<Collision2DPair, Collision2DPairEventReference,
+            Collision2DPairEvent> { }
 
     [UnitCategory("Events/Atoms"), UnitShortTitle("Collision Event"), UnitTitle("Atom Collision Event")]
     public class CollisionEventUnit : AtomEventUnit<Collision, CollisionEventReference, CollisionEvent> { }
 
     [UnitCategory("Events/Atoms"), UnitShortTitle("CollisionPair Event"), UnitTitle("Atom CollisionPair Event")]
-    public class CollisionPairEventUnit : AtomEventUnit<CollisionPair, CollisionPairEventReference, CollisionPairEvent> { }
+    public class
+        CollisionPairEventUnit : AtomEventUnit<CollisionPair, CollisionPairEventReference, CollisionPairEvent> { }
 
     [UnitCategory("Events/Atoms"), UnitShortTitle("Color Event"), UnitTitle("Atom Color Event")]
     public class ColorEventUnit : AtomEventUnit<Color, ColorEventReference, ColorEvent> { }
