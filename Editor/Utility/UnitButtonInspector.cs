@@ -20,12 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE. 
 
+using Guyl.AtomsVS.Runtime.Utility;
+using Unity.VisualScripting;
+using UnityEditor;
+using UnityEngine;
+
 namespace Guyl.AtomsVS.Editor.Utility
 {
-    using UnityEngine;
-    using Ludiq;
-    using Runtime.Utility;
-
     [Inspector(typeof(UnitButton))]
     public class UnitButtonInspector : Inspector
     {
@@ -38,16 +39,16 @@ namespace Guyl.AtomsVS.Editor.Utility
 
         protected override void OnGUI(Rect position, GUIContent label)
         {
-            BeginBlock(metadata, position, GUIContent.none);
+            BeginBlock(metadata, position);
 
             var buttonPosition = new Rect(
                 position.x,
                 position.y,
                 position.width + 8,
                 16
-                );
+            );
 
-            if (GUI.Button(buttonPosition, "Trigger", new GUIStyle(UnityEditor.EditorStyles.miniButton)))
+            if (GUI.Button(buttonPosition, "Trigger", new GUIStyle(EditorStyles.miniButton)))
             {
                 var attribute = metadata.GetAttribute<UnitButtonAttribute>(true);
 
@@ -57,8 +58,7 @@ namespace Guyl.AtomsVS.Editor.Utility
 
                     object typeObject = metadata.parent.value;
                     GraphReference reference = GraphWindow.activeReference;
-                    typeObject.GetType().GetMethod(method).Invoke(typeObject, new object[1] { reference });
-
+                    typeObject.GetType().GetMethod(method).Invoke(typeObject, new object[1] {reference});
                 }
             }
 

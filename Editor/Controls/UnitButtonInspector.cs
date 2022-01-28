@@ -20,12 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE. 
 
+using Unity.VisualScripting;
+using UnityEditor;
+using UnityEngine;
+
 namespace Guyl.AtomsVS.Editor.Controls
 {
-    using UnityEngine;
-    using Ludiq;
-
-    [Inspector(typeof(UnitButton) )]
+    [Inspector(typeof(UnitButton))]
     public class UnitButtonInspector : Inspector
     {
         public UnitButtonInspector(Metadata metadata) : base(metadata) { }
@@ -37,16 +38,16 @@ namespace Guyl.AtomsVS.Editor.Controls
 
         protected override void OnGUI(Rect position, GUIContent label)
         {
-            BeginBlock(metadata, position, GUIContent.none);
+            BeginBlock(metadata, position);
 
             var buttonPosition = new Rect(
                 position.x,
                 position.y,
                 position.width + 8,
                 16
-                );
+            );
 
-            if (GUI.Button(buttonPosition, "Trigger", new GUIStyle(UnityEditor.EditorStyles.miniButton)))
+            if (GUI.Button(buttonPosition, "Trigger", new GUIStyle(EditorStyles.miniButton)))
             {
                 var attribute = metadata.GetAttribute<UnitButtonAttribute>(true);
 
@@ -56,7 +57,6 @@ namespace Guyl.AtomsVS.Editor.Controls
 
                     object typeObject = metadata.parent.value;
                     typeObject.GetType().GetMethod(method).Invoke(typeObject, new object[0] { });
-
                 }
             }
 

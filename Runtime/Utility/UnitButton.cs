@@ -20,13 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE. 
 
+using System;
+using Unity.VisualScripting;
+
 namespace Guyl.AtomsVS.Runtime.Utility
 {
-    using Ludiq;
-
     [Inspectable]
     public class UnitButton
     {
-        public System.Action action;
+        public Action action;
     }
 }
