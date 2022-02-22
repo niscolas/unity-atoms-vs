@@ -44,8 +44,8 @@ namespace Guyl.BoltAtoms.Events
             base.StartListening(stack);
 
             Data data = stack.GetElementData<Data>(this);
-            Flow flow = Flow.New(stack.ToReference());
-            E currentEvent = flow.GetValue<ER>(_event).GetEvent<E>();
+            GraphReference stackReference = stack.ToReference();
+            E currentEvent = Flow.FetchValue<ER>(_event, stackReference).GetEvent<E>();
 
             if (!currentEvent)
             {
@@ -55,7 +55,7 @@ namespace Guyl.BoltAtoms.Events
             data.EventRaisedHandler = value =>
             {
                 data.CurrentValue = value;
-                flow.Invoke(trigger);
+                Flow.New(stackReference).Invoke(trigger);
             };
 
             currentEvent.Unregister(data.EventRaisedHandler);
